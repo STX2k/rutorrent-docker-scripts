@@ -3,7 +3,7 @@
 # Set default rutorrent lsio path
 rutorrent_path="/app/rutorrent"
 
-echo "*** Installing NFO Plugin ***"
+echo "*** Check if NFO plugin allready installed ***"
 if [ ! -d $rutorrent_path/plugins/nfo ]
 then
         echo "*** Installing NFO Plugin ***"
