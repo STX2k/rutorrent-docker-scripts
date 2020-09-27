@@ -3,37 +3,43 @@
 # Set default rutorrent lsio path
 rutorrent_path="/app/rutorrent"
 
+echo "*** Installing utilities to support plugins ***"
+apk add --no-cache --upgrade zip unzip findutils php-sockets
+
+echo "*** Checking for rar ***"
+if [ ! -f /usr/bin/rar ]
+then
+        echo "*** Downloading rar ***"
+        cd /tmp
+        if [ `getconf LONG_BIT` = "64" ]
+                then
+                        wget -O rarlinux.tar.gz https://www.rarlab.com/rar/rarlinux-x64-5.9.1.tar.gz
+                else
+                        wget -O rarlinux.tar.gz https://www.rarlab.com/rar/rarlinux-5.9.1.tar.gz
+                fi
+        echo "*** Installing rar ***"
+        tar -xzf rarlinux.tar.gz
+        rm rarlinux.tar.gz
+        mv rar/rar /usr/bin/rar
+        rm -rf rar
+        chmod 755 /usr/bin/rar
+        cd /
+else
+        echo "*** Rar already installed ***"
+fi
+
 echo "*** Checking for filemanager config ***"
 if [ ! -f $rutorrent_path/plugins/filemanager/conf.php ]
 then
-	echo "*** Installing filemanager ***"
-	cd $rutorrent_path/plugins/
-	svn co https://github.com/nelu/rutorrent-thirdparty-plugins/trunk/filemanager
+        echo "*** Installing filemanager ***"
+        cd $rutorrent_path/plugins/
+        git clone https://github.com/STX2k/rutorrent-filemanager.git filemanager
 
-	echo "*** Applying default configurations ***"
-	cat > $rutorrent_path/plugins/filemanager/conf.php << EOF
-<?php
-\$fm['tempdir'] = '/tmp';                // path were to store temporary data ; must be writable
-\$fm['mkdperm'] = 755;           // default permission to set to new created directories
-// set with fullpath to binary or leave empty
-\$pathToExternals['rar'] = '$(which rar)';
-\$pathToExternals['zip'] = '$(which zip)';
-\$pathToExternals['unzip'] = '$(which unzip)';
-\$pathToExternals['tar'] = '$(which tar)';
-\$pathToExternals['bzip2'] = '$(which bzip2)';
-// archive mangling, see archiver man page before editing
-\$fm['archive']['types'] = array('rar', 'zip', 'tar', 'gzip', 'bzip2');
-\$fm['archive']['compress'][0] = range(0, 5);
-\$fm['archive']['compress'][1] = array('-0', '-1', '-9');
-\$fm['archive']['compress'][2] = \$fm['archive']['compress'][3] = \$fm['archive']['compress'][4] = array(0);
-?>
-EOF
-
-chown -R abc:abc $rutorrent_path/plugins/filemanager
-chmod -R 775 $rutorrent_path/plugins/filemanager/scripts
+        chown -R abc:abc $rutorrent_path/plugins/filemanager
+        chmod -R 775 $rutorrent_path/plugins/filemanager/scripts
 
 else
-	echo "*** Updating filemanager ***"
-	cd $rutorrent_path/plugins/
-	svn co https://github.com/nelu/rutorrent-thirdparty-plugins/trunk/filemanager
+        echo "*** Updating filemanager ***"
+        cd $rutorrent_path/plugins/filemanager
+        git pull
 fi
